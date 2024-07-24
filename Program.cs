@@ -5,7 +5,7 @@ Console.WriteLine(Consts.DESC);
 while (true)
 {
     var logger = Logger.UpdateLogFileName();
-    Console.WriteLine("Путь к файлу лога:");
+    Console.WriteLine("Путь к файлу txt со списком имен форм:");
     var inputFile = Utils.GetFile(Console.ReadLine());
     if (!File.Exists(inputFile))
     {
@@ -13,7 +13,7 @@ while (true)
         continue;
     }
 
-    Console.WriteLine("Путь к папке с XML:");
+    Console.WriteLine("Путь к папке с формами (ищет рекурсивно):");
     var xmlFolder = Utils.GetPath(Console.ReadLine());
     if (!Directory.Exists(xmlFolder))
     {
@@ -21,7 +21,7 @@ while (true)
         continue;
     }
 
-    Console.WriteLine("Путь к папке с результатом:");
+    Console.WriteLine("Куда сложить найденные файлы:");
     var resultFolder = Utils.GetPath(Console.ReadLine());
     if (!Directory.Exists(resultFolder))
     {
@@ -30,43 +30,12 @@ while (true)
     }
 
     logger.Write($"Разбор файла {Path.GetFileName(inputFile)}");
-    logger.Write($"Обработка записей");
     var resultFiles = new HashSet<string>();
 
-
-    // не исользуемый код начало
-    if (inputFile.EndsWith(".csv")) 
+    if (inputFile.EndsWith(".txt"))
     {
-        var records = new ParserCSV(inputFile).Parse();
-
-        foreach (var record in records)
-        {
-            try
-            {
-                var fileXML = Finder.GetFileByRecord(record, xmlFolder);
-                if (string.IsNullOrEmpty(fileXML))
-                {
-                    logger.Write($"Не найдено: {record.FullName}");
-                }
-
-                if (!resultFiles.Contains(fileXML) && !string.IsNullOrEmpty(fileXML))
-                {
-                    resultFiles.Add(fileXML);
-                    logger.Write($"{record.FullName}");
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Write($"{ex}");
-            }
-        }
-    }
-    // не исользуемый код окончание
-
-    else if (inputFile.EndsWith(".txt"))
-    {
-        var parser = new ParserEIRRMULog(inputFile);
-        var fileNames = parser.GetFileNames();
+        logger.Write($"Ищу файлы");
+        var fileNames = File.ReadAllLines(inputFile);
         foreach (var fileName in fileNames)
         {
             try
@@ -74,13 +43,13 @@ while (true)
                 var fileXML = Finder.GetFileByName(fileName, xmlFolder);
                 if (string.IsNullOrEmpty(fileXML))
                 {
-                    logger.Write($"Не найдено: {fileName}");
+                    logger.Write($"Не найден: {fileName}");
                 }
 
                 if (!resultFiles.Contains(fileXML) && !string.IsNullOrEmpty(fileXML))
                 {
                     resultFiles.Add(fileXML);
-                    logger.Write($"{fileName}");
+                    logger.Write($"Обнаружен: {fileName}");
                 }
             }
             catch (Exception ex)
@@ -89,7 +58,7 @@ while (true)
             }
         }
     }
-
+    logger.Write($"Копирую файлы");
     foreach (var file in resultFiles)
     {
         try
