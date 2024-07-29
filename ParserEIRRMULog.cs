@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace FindXml;
+﻿namespace FindXml;
 
 public class ParserEIRRMULog
 {
