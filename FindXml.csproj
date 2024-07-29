@@ -7,11 +7,15 @@
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <ApplicationIcon>data\FX_ico.ico</ApplicationIcon>
+    <ApplicationIcon>FX_ico.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="data\FX_ico.ico" />
+    <Content Include="FX_ico.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="data\" />
   </ItemGroup>
 
 </Project>
