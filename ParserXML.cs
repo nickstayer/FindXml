@@ -13,32 +13,32 @@ public class ParserXML
         var firstName = xmlDoc.GetElementsByTagName("firstName");
         var middleName = xmlDoc.GetElementsByTagName("middleName");
         var birthDate = xmlDoc.GetElementsByTagName("birthDate");
-        var record = new Record();
-
-        var fullName = new StringBuilder();
+        
+        var fullNameBuilder = new StringBuilder();
+        var bDate = string.Empty;
 
         if (lastName?.Count > 0)
         {
-            fullName.Append(lastName[0].InnerText).Append(" ");
+            fullNameBuilder.Append(lastName[0]?.InnerText).Append(" ");
         }
 
         if (firstName?.Count > 0)
         {
-            fullName.Append(firstName[0].InnerText).Append(" ");
+            fullNameBuilder.Append(firstName[0]?.InnerText).Append(" ");
         }
 
         if (middleName?.Count > 0)
         {
-            fullName.Append(middleName[0].InnerText);
+            fullNameBuilder.Append(middleName[0]?.InnerText);
         }
 
-        record.FullName = fullName.ToString().Trim().Replace("  "," ");
+        var fullName = fullNameBuilder.ToString().Trim().Replace("  "," ");
 
         if (birthDate?.Count > 0)
         {
-            record.Bdate = birthDate[0].InnerText.Trim();
+            bDate = birthDate[0]?.InnerText.Trim();
         }
-
+        var record = new Record(FullName: fullName, Bdate: bDate!);
         return record;
     }
 }
