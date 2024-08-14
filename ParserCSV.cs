@@ -22,10 +22,8 @@ public class ParserCSV
             var line = lines[i];
             var arr = line.Split(';');
             var date = ParseDate(arr[5]);
-            var rec = new Record 
+            var rec = new Record(FullName: arr[2], Bdate: arr[3])
             { 
-                FullName = arr[2], 
-                Bdate = arr[3],
                 PriemDate = date
             };
             records.Add(rec);

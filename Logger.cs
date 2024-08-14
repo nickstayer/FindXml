@@ -21,7 +21,7 @@ public class Logger
         Console.WriteLine(line);
     }
 
-    public static Logger UpdateLogFileName(Logger logger = null)
+    public static Logger UpdateLogFileName(Logger? logger = null)
     {
         var currentPath = Directory.GetCurrentDirectory();
         var logsDirFullName = Path.Combine(currentPath, Consts.LOGS_DIR_NAME);

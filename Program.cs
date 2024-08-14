@@ -6,41 +6,52 @@ while (true)
 {
     var logger = Logger.UpdateLogFileName();
     Console.WriteLine("Путь к файлу txt со списком имен форм:");
-    var inputFile = Utils.GetFile(Console.ReadLine());
-    if (!File.Exists(inputFile))
+    var inputFile = Console.ReadLine();
+    if (!string.IsNullOrEmpty(inputFile))
     {
-        Console.WriteLine($"Файл не существует: {inputFile}");
-        continue;
+        inputFile = Utils.NormalizePath(inputFile);
+        if (!File.Exists(inputFile))
+        {
+            Console.WriteLine($"Файл не существует: {inputFile}");
+            continue;
+        }
     }
 
     Console.WriteLine("Путь к папке с формами (ищет рекурсивно):");
-    var xmlFolder = Utils.GetPath(Console.ReadLine());
-    if (!Directory.Exists(xmlFolder))
+    var xmlFolder = Console.ReadLine();
+    if (!string.IsNullOrEmpty(xmlFolder))
     {
-        Console.WriteLine($"Папка не существует: {xmlFolder}");
-        continue;
+        xmlFolder = Utils.NormalizePath(xmlFolder);
+        if (!Directory.Exists(xmlFolder))
+        {
+            Console.WriteLine($"Папка не существует: {xmlFolder}");
+            continue;
+        }
     }
 
     Console.WriteLine("Куда сложить найденные файлы:");
-    var resultFolder = Utils.GetPath(Console.ReadLine());
-    if (!Directory.Exists(resultFolder))
+    var resultFolder = Console.ReadLine();
+    if (!string.IsNullOrEmpty(resultFolder))
     {
-        Console.WriteLine($"Папка не существует: {resultFolder}");
-        continue;
+        resultFolder = Utils.NormalizePath(resultFolder);
+        if (!Directory.Exists(resultFolder))
+        {
+            Console.WriteLine($"Папка не существует: {resultFolder}");
+            continue;
+        }
     }
 
     logger.Write($"Разбор файла {Path.GetFileName(inputFile)}");
     var resultFiles = new HashSet<string>();
-
-    if (inputFile.EndsWith(".txt"))
+    if (inputFile!.EndsWith(".txt"))
     {
         logger.Write($"Ищу файлы");
-        var fileNames = File.ReadAllLines(inputFile);
+        var fileNames = File.ReadAllLines(inputFile).Where(str => !string.IsNullOrWhiteSpace(str)).ToArray();
         foreach (var fileName in fileNames)
         {
             try
             {
-                var fileXML = Finder.GetFileByName(fileName, xmlFolder);
+                var fileXML = Finder.GetFileByName(fileName, xmlFolder!);
                 if (string.IsNullOrEmpty(fileXML))
                 {
                     logger.Write($"Не найден: {fileName}");
@@ -58,7 +69,8 @@ while (true)
             }
         }
     }
-    logger.Write($"Копирую файлы");
+
+    logger.Write($"Копирую найденные файлы");
     foreach (var file in resultFiles)
     {
         try
