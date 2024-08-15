@@ -5,7 +5,7 @@ Console.WriteLine(Consts.DESC);
 while (true)
 {
     var logger = Logger.UpdateLogFileName();
-    Console.WriteLine("Путь к файлу txt со списком имен форм:");
+    Console.WriteLine("Путь к файлу txt (со списком имен форм)/(лог-файлу еир рму):");
     var inputFile = Console.ReadLine();
     if (!string.IsNullOrEmpty(inputFile))
     {
@@ -43,10 +43,39 @@ while (true)
 
     logger.Write($"Разбор файла {Path.GetFileName(inputFile)}");
     var resultFiles = new HashSet<string>();
-    if (inputFile!.EndsWith(".txt"))
+
+    if (inputFile!.EndsWith(".txt") && !inputFile.Contains("report"))
     {
         logger.Write($"Ищу файлы");
         var fileNames = File.ReadAllLines(inputFile).Where(str => !string.IsNullOrWhiteSpace(str)).ToArray();
+        foreach (var fileName in fileNames)
+        {
+            try
+            {
+                var fileXML = Finder.GetFileByName(fileName, xmlFolder!);
+                if (string.IsNullOrEmpty(fileXML))
+                {
+                    logger.Write($"Не найден: {fileName}");
+                }
+
+                if (!resultFiles.Contains(fileXML) && !string.IsNullOrEmpty(fileXML))
+                {
+                    resultFiles.Add(fileXML);
+                    logger.Write($"Обнаружен: {fileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Write($"{ex}");
+            }
+        }
+    }
+
+    else if (inputFile!.EndsWith(".txt") && inputFile.Contains("report"))
+    {
+        logger.Write($"Ищу файлы");
+        var parser = new ParserEIRRMULog(inputFile);
+        var fileNames = parser.GetFileNames();
         foreach (var fileName in fileNames)
         {
             try
