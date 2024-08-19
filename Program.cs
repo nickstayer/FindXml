@@ -1,7 +1,5 @@
 ﻿using FindXml;
 
-Console.WriteLine(Consts.DESC);
-
 while (true)
 {
     var logger = Logger.UpdateLogFileName();
@@ -73,6 +71,9 @@ while (true)
 
     else if (inputFile!.EndsWith(".txt") && inputFile.Contains("report"))
     {
+        Console.WriteLine("Интересующие разделы лога, из которых будет составлен список файлов:");
+        foreach (var section in Consts.REQUIRED_LOG_SECTIONS)
+            Console.WriteLine(section);
         logger.Write($"Ищу файлы");
         var parser = new ParserEIRRMULog(inputFile);
         var fileNames = parser.GetFileNames();
@@ -115,5 +116,5 @@ while (true)
     }
 
     Console.WriteLine($"Найдено файлов: {resultFiles.Count}. Результат в папке {resultFolder}");
-    Console.ReadKey(); 
+    Console.ReadKey();
 }

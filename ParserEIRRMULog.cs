@@ -28,7 +28,7 @@ public class ParserEIRRMULog
                 continue;
             }
 
-            if(needBlock && IsItStatusLevelLine(line) && !IsItNeedStatusLine(line))
+            if (needBlock && IsItStatusLevelLine(line) && !IsItNeedStatusLine(line))
             {
                 needBlock = false;
                 continue;
@@ -43,7 +43,7 @@ public class ParserEIRRMULog
                     if (!fileNames.Contains(fileName))
                     {
                         fileNames.Add(fileName);
-                    } 
+                    }
                 }
             }
         }
@@ -72,16 +72,13 @@ public class ParserEIRRMULog
 
     private bool IsItNeedStatusLine(string line)
     {
-        var trimedLine = line.Trim();
-        if (trimedLine.Contains("повторную"))
+        var result = false;
+        foreach (var section in Consts.REQUIRED_LOG_SECTIONS)
         {
-
+            result = line.Contains(section);
+            if(result)
+                break;
         }
-        var result = trimedLine.Contains("Обработанные с ошибкой:")
-                || line.Contains("Отправленные на повторную обработку:")
-                || line.Contains("Не прошедшие проверку сертификата пользователя:")
-                || line.Contains("Не прошедшие проверку подписи:")
-                || line.Contains("Не прошедшие проверку XSD схемы:");
         return result;
     }
 
