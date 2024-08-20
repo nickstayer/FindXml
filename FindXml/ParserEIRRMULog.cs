@@ -14,7 +14,7 @@ public class ParserEIRRMULog
         _fileTXT = fileTXT;
     }
 
-    public HashSet<string> GetFileNames()
+    public HashSet<string> Parse()
     {
         var lines = File.ReadAllLines(_fileTXT);
         var fileNames = new HashSet<string>();
@@ -40,9 +40,13 @@ public class ParserEIRRMULog
                 if (arr.Length > 0)
                 {
                     var fileName = arr[0].Replace("Файл ", "");
-                    if (!fileNames.Contains(fileName))
+                    var errorDescription = arr.Last();
+                    if (!ContainsRequiredKeyword(errorDescription))
                     {
-                        fileNames.Add(fileName);
+                        if (!fileNames.Contains(fileName))
+                        {
+                            fileNames.Add(fileName);
+                        }
                     }
                 }
             }
@@ -73,10 +77,22 @@ public class ParserEIRRMULog
     private bool IsItNeedStatusLine(string line)
     {
         var result = false;
-        foreach (var section in Consts.REQUIRED_LOG_SECTIONS)
+        foreach (var section in Consts.INCLUDE_LOG_SECTIONS)
         {
             result = line.Contains(section);
-            if(result)
+            if (result)
+                break;
+        }
+        return result;
+    }
+
+    private bool ContainsRequiredKeyword(string errorDescription)
+    {
+        var result = false;
+        foreach (var keyword in Consts.EXCLUDE_KEYWORDS)
+        {
+            result = errorDescription.Contains(keyword);
+            if (result)
                 break;
         }
         return result;

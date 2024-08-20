@@ -71,12 +71,17 @@ while (true)
 
     else if (inputFile!.EndsWith(".txt") && inputFile.Contains("report"))
     {
-        Console.WriteLine("Интересующие разделы лога, из которых будет составлен список файлов:");
-        foreach (var section in Consts.REQUIRED_LOG_SECTIONS)
-            Console.WriteLine(section);
+        Console.WriteLine("Включаю разделы лога:");
+        foreach (var section in Consts.INCLUDE_LOG_SECTIONS)
+            Console.WriteLine("\t" + section);
+
+        Console.WriteLine("Исключаю описание ошибок, содержащее:");
+        foreach (var keyword in Consts.EXCLUDE_KEYWORDS)
+            Console.WriteLine("\t" + keyword);
+
         logger.Write($"Ищу файлы");
         var parser = new ParserEIRRMULog(inputFile);
-        var fileNames = parser.GetFileNames();
+        var fileNames = parser.Parse();
         foreach (var fileName in fileNames)
         {
             try

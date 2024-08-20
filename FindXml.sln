@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FindXml", "FindXml.csproj", "{82F05906-34DA-431C-AA6C-49CA7D823FDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FindXml", "FindXml\FindXml.csproj", "{82F05906-34DA-431C-AA6C-49CA7D823FDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FindXml.Tests", "FindXml.Tests\FindXml.Tests.csproj", "{2FA199C5-5CCC-4368-B2CB-72871E9EFD23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{82F05906-34DA-431C-AA6C-49CA7D823FDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82F05906-34DA-431C-AA6C-49CA7D823FDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82F05906-34DA-431C-AA6C-49CA7D823FDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FA199C5-5CCC-4368-B2CB-72871E9EFD23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FA199C5-5CCC-4368-B2CB-72871E9EFD23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FA199C5-5CCC-4368-B2CB-72871E9EFD23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FA199C5-5CCC-4368-B2CB-72871E9EFD23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
