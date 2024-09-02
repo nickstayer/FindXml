@@ -1,115 +1,101 @@
-﻿namespace FindXml;
+﻿using System.Text.RegularExpressions;
 
-public class ParserEIRRMULog
+namespace FindXml;
+
+public class ParserEIRRMULog(string fileTXT)
 {
-    private string _fileTXT;
-    private const string LEVEL_TYPE_0 = "Уровень вида учета"; // нет пробелов в начале строки
+    private readonly string _fileTXT = fileTXT;
+    private const string LEVEL_ACCOUNTING_TYPE_0 = "Уровень вида учета"; // нет пробелов в начале строки
     private const string LEVEL_TRANSFER_STATUS_2 = "Уровень статуса передачи файлов"; // два пробела
     private const string LEVEL_VENDOR_4 = "Уровень поставщика";
     private const string LEVEL_FILE_6_8 = "Уровень файла";
     private const string LEVEL_OTHER = "Другое";
 
-    public ParserEIRRMULog(string fileTXT)
-    {
-        _fileTXT = fileTXT;
-    }
-
-    public HashSet<string> Parse()
+    public List<Transfer> Parse()
     {
         var lines = File.ReadAllLines(_fileTXT);
-        var fileNames = new HashSet<string>();
-        bool needBlock = false;
+        var transfers = new List<Transfer>();
+        string currentAccountingType = string.Empty;
+        string currentTransferStatus = string.Empty;
+        string currentVendor = string.Empty;
         for (int i = 0; i < lines.Length; i++)
         {
             var line = lines[i];
-            if (IsItNeedStatusLine(line))
-            {
-                needBlock = true;
-                continue;
-            }
 
-            if (needBlock && IsItStatusLevelLine(line) && !IsItNeedStatusLine(line))
-            {
-                needBlock = false;
-                continue;
-            }
+            if(IsItAccountingTypeLevelLine(line))
+                currentAccountingType = line;
+            
+            if(IsItTransferStatusLevelLine(line))
+                currentTransferStatus = GetTransferStatus(line);
+            
+            if(IsItVendorLevelLine(line))
+                currentVendor = GetVendor(line);
 
-            if (needBlock && IsItFileLevelLine(line))
+            if (IsItFileLevelLine(line))
             {
                 var arr = line.Trim().Split(':');
                 if (arr.Length > 0)
                 {
                     var fileName = arr[0].Replace("Файл ", "");
                     var errorDescription = arr.Last();
-                    if (!ContainsRequiredKeyword(errorDescription))
-                    {
-                        if (!fileNames.Contains(fileName))
-                        {
-                            fileNames.Add(fileName);
-                        }
-                    }
+                    var accountingType = currentAccountingType;
+                    var transferStatus = currentTransferStatus;
+                    var vendor = currentVendor;
+                    var transfer = new Transfer(accountingType, transferStatus, vendor, fileName, errorDescription);
+                    transfers.Add(transfer);
                 }
             }
         }
-        return fileNames;
+        return transfers;
     }
 
-    private string GetLineLevel(string line)
+    private static string GetLineLevel(string line)
     {
-        var whiteSpaceCount = line.TakeWhile(Char.IsWhiteSpace).Count();
-        switch (whiteSpaceCount)
+        var whiteSpaceCount = line.TakeWhile(char.IsWhiteSpace).Count();
+        return whiteSpaceCount switch
         {
-            case 0:
-                return LEVEL_TYPE_0;
-            case 2:
-                return LEVEL_TRANSFER_STATUS_2;
-            case 4:
-                return LEVEL_VENDOR_4;
-            case 6:
-                return LEVEL_FILE_6_8;
-            case 8:
-                return LEVEL_FILE_6_8;
-            default: return LEVEL_OTHER;
-        }
-
+            0 => LEVEL_ACCOUNTING_TYPE_0,
+            2 => LEVEL_TRANSFER_STATUS_2,
+            4 => LEVEL_VENDOR_4,
+            6 => LEVEL_FILE_6_8,
+            8 => LEVEL_FILE_6_8,
+            _ => LEVEL_OTHER,
+        };
     }
 
-    private bool IsItNeedStatusLine(string line)
-    {
-        var result = false;
-        foreach (var section in Consts.INCLUDE_LOG_SECTIONS)
-        {
-            result = line.Contains(section);
-            if (result)
-                break;
-        }
-        return result;
-    }
-
-    private bool ContainsRequiredKeyword(string errorDescription)
-    {
-        var result = false;
-        foreach (var keyword in Consts.EXCLUDE_KEYWORDS)
-        {
-            result = errorDescription.Contains(keyword);
-            if (result)
-                break;
-        }
-        return result;
-    }
-
-    private bool IsItStatusLevelLine(string line)
+    private static bool IsItTransferStatusLevelLine(string line)
     {
         return GetLineLevel(line) == LEVEL_TRANSFER_STATUS_2;
     }
 
-    private bool IsItFileLevelLine(string line)
+    private static bool IsItFileLevelLine(string line)
     {
         return GetLineLevel(line) == LEVEL_FILE_6_8;
     }
 
-    private bool IsItVendorLevelLine(string line)
+    private static bool IsItVendorLevelLine(string line)
     {
         return GetLineLevel(line) == LEVEL_VENDOR_4;
+    }
+
+    private static bool IsItAccountingTypeLevelLine(string line)
+    {
+        return GetLineLevel(line) == LEVEL_ACCOUNTING_TYPE_0;
+    }
+
+    public static string GetVendor(string vendorLine)
+    {
+        var pattern = @"\d{16}";
+        var match = Regex.Match(vendorLine, pattern);
+        if(match.Success)
+        {
+            return match.Value;
+        }
+        return string.Empty;
+    }
+
+    public static string GetTransferStatus(string transferStatusLine)
+    {
+        return transferStatusLine.Replace(":", "").Trim();
     }
 }

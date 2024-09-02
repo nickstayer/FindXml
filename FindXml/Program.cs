@@ -40,8 +40,9 @@ while (true)
     }
 
     logger.Write($"Разбор файла {Path.GetFileName(inputFile)}");
-    var resultFiles = new HashSet<string>();
-
+    var resultFileFolderName = new Dictionary<string, string>();
+    
+    // поиск по списку имен файлов
     if (inputFile!.EndsWith(".txt") && !inputFile.Contains("report"))
     {
         logger.Write($"Ищу файлы");
@@ -56,9 +57,9 @@ while (true)
                     logger.Write($"Не найден: {fileName}");
                 }
 
-                if (!resultFiles.Contains(fileXML) && !string.IsNullOrEmpty(fileXML))
+                if (!resultFileFolderName.ContainsKey(fileXML) && !string.IsNullOrEmpty(fileXML))
                 {
-                    resultFiles.Add(fileXML);
+                    resultFileFolderName[fileXML] = "";
                     logger.Write($"Обнаружен: {fileName}");
                 }
             }
@@ -69,33 +70,35 @@ while (true)
         }
     }
 
+    // парсинг лога еир рму
     else if (inputFile!.EndsWith(".txt") && inputFile.Contains("report"))
     {
         Console.WriteLine("Включаю разделы лога:");
-        foreach (var section in Consts.INCLUDE_LOG_SECTIONS)
+        foreach (var section in Filter.INCLUDE_TRANSFER_STATUS)
             Console.WriteLine("\t" + section);
 
         Console.WriteLine("Исключаю описание ошибок, содержащее:");
-        foreach (var keyword in Consts.EXCLUDE_KEYWORDS)
+        foreach (var keyword in Filter.EXCLUDE_ERROR_DESCRIPTION_KEYWORDS)
             Console.WriteLine("\t" + keyword);
 
         logger.Write($"Ищу файлы");
         var parser = new ParserEIRRMULog(inputFile);
-        var fileNames = parser.Parse();
-        foreach (var fileName in fileNames)
+        var transfers = parser.Parse();
+        var filtredTransfers = Filter.Do(transfers);
+        foreach (var transfer in filtredTransfers)
         {
             try
             {
-                var fileXML = Finder.GetFileByName(fileName, xmlFolder!);
+                var fileXML = Finder.GetFileByName(transfer.FileName, xmlFolder!);
                 if (string.IsNullOrEmpty(fileXML))
                 {
-                    logger.Write($"Не найден: {fileName}");
+                    logger.Write($"Не найден: {transfer.FileName}");
                 }
 
-                if (!resultFiles.Contains(fileXML) && !string.IsNullOrEmpty(fileXML))
+                if (!resultFileFolderName.ContainsKey(fileXML) && !string.IsNullOrEmpty(fileXML))
                 {
-                    resultFiles.Add(fileXML);
-                    logger.Write($"Обнаружен: {fileName}");
+                    resultFileFolderName[fileXML] = Filter.GetFolderName(transfer);
+                    logger.Write($"Обнаружен: {transfer.FileName}");
                 }
             }
             catch (Exception ex)
@@ -106,20 +109,24 @@ while (true)
     }
 
     logger.Write($"Копирую найденные файлы");
-    foreach (var file in resultFiles)
+    foreach (var pair in resultFileFolderName)
     {
         try
         {
-            var fileName = Path.GetFileName(file);
-            var newFile = resultFolder + "\\" + fileName;
-            File.Copy(file, newFile, true);
+            var fileName = Path.GetFileName(pair.Key);
+            var subfolder = string.IsNullOrWhiteSpace(pair.Value) ? string.Empty : pair.Value;
+            var newFile = Path.Combine(resultFolder!, pair.Value, fileName);
+            var fileDir = Path.GetDirectoryName(newFile);
+            if(!Directory.Exists(fileDir))
+                Directory.CreateDirectory(fileDir!);
+            File.Copy(pair.Key, newFile, true);
         }
         catch (Exception ex)
         {
-            logger.Write($"Не удалось скопировать файл {file}: {ex}");
+            logger.Write($"Не удалось скопировать файл {pair}: {ex}");
         }
     }
 
-    Console.WriteLine($"Найдено файлов: {resultFiles.Count}. Результат в папке {resultFolder}");
-    Console.ReadKey();
+    Console.WriteLine($"Найдено файлов: {resultFileFolderName.Count}. Результат в папке {resultFolder}");
+    Console.ReadLine();
 }
