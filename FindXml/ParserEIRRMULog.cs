@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FindXml;
 
@@ -33,11 +34,11 @@ public class ParserEIRRMULog(string fileTXT)
 
             if (IsItFileLevelLine(line))
             {
-                var arr = line.Trim().Split(':');
+                var arr = line.Trim().Split(": ");
                 if (arr.Length > 0)
                 {
                     var fileName = arr[0].Replace("Файл ", "");
-                    var errorDescription = arr.Last();
+                    var errorDescription = GetErrorDescription(line);
                     var accountingType = currentAccountingType;
                     var transferStatus = currentTransferStatus;
                     var vendor = currentVendor;
@@ -97,5 +98,22 @@ public class ParserEIRRMULog(string fileTXT)
     public static string GetTransferStatus(string transferStatusLine)
     {
         return transferStatusLine.Replace(":", "").Trim();
+    }
+
+    public static string GetErrorDescription(string line)
+    {
+        var arr = line.Split(": ");
+        var errorDescription = new StringBuilder();
+        for(int i = 0; i < arr.Length; i++)
+        {
+            if(i > 0)
+            {
+                errorDescription.Append(arr[i]);
+                if(i != arr.Length - 1)
+                    errorDescription.Append(": ");
+            }
+
+        }
+        return errorDescription.ToString();
     }
 }

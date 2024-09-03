@@ -1,19 +1,20 @@
 ﻿using FindXml;
 
+var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+var in_dir = Path.Combine(currentDir, "in");
+if(!Directory.Exists(in_dir))
+    Directory.CreateDirectory(in_dir);
+
+var out_dir = Path.Combine(currentDir, "out");
+if(!Directory.Exists(out_dir))
+    Directory.CreateDirectory(out_dir);
+
 while (true)
 {
     var logger = Logger.UpdateLogFileName();
-    Console.WriteLine("Путь к файлу txt (со списком имен форм)/(лог-файлу еир рму):");
-    var inputFile = Console.ReadLine();
-    if (!string.IsNullOrEmpty(inputFile))
-    {
-        inputFile = Utils.NormalizePath(inputFile);
-        if (!File.Exists(inputFile))
-        {
-            Console.WriteLine($"Файл не существует: {inputFile}");
-            continue;
-        }
-    }
+    Console.WriteLine($"Поместите лог-файл (или список с именами файлов) в папку {in_dir}.");
+    var inputFile = Directory.GetFiles(in_dir).FirstOrDefault();
+    
 
     Console.WriteLine("Путь к папке с формами (ищет рекурсивно):");
     var xmlFolder = Console.ReadLine();
@@ -25,23 +26,16 @@ while (true)
             Console.WriteLine($"Папка не существует: {xmlFolder}");
             continue;
         }
-    }
-
-    Console.WriteLine("Куда сложить найденные файлы:");
-    var resultFolder = Console.ReadLine();
-    if (!string.IsNullOrEmpty(resultFolder))
-    {
-        resultFolder = Utils.NormalizePath(resultFolder);
-        if (!Directory.Exists(resultFolder))
+        if(string.IsNullOrWhiteSpace(inputFile))
         {
-            Console.WriteLine($"Папка не существует: {resultFolder}");
+            Console.WriteLine($"Папка {in_dir} пуста: ");
             continue;
         }
     }
 
     logger.Write($"Разбор файла {Path.GetFileName(inputFile)}");
-    var resultFileFolderName = new Dictionary<string, string>();
-    
+    var sourceFileTargetFile = new Dictionary<string, string>();
+
     // поиск по списку имен файлов
     if (inputFile!.EndsWith(".txt") && !inputFile.Contains("report"))
     {
@@ -57,9 +51,9 @@ while (true)
                     logger.Write($"Не найден: {fileName}");
                 }
 
-                if (!resultFileFolderName.ContainsKey(fileXML) && !string.IsNullOrEmpty(fileXML))
+                if (!sourceFileTargetFile.ContainsKey(fileXML) && !string.IsNullOrEmpty(fileXML))
                 {
-                    resultFileFolderName[fileXML] = "";
+                    sourceFileTargetFile[fileXML] = "";
                     logger.Write($"Обнаружен: {fileName}");
                 }
             }
@@ -89,15 +83,16 @@ while (true)
         {
             try
             {
-                var fileXML = Finder.GetFileByName(transfer.FileName, xmlFolder!);
-                if (string.IsNullOrEmpty(fileXML))
+                var sourceFile = Finder.GetFileByName(transfer.FileName, xmlFolder!);
+                if (string.IsNullOrEmpty(sourceFile))
                 {
                     logger.Write($"Не найден: {transfer.FileName}");
                 }
 
-                if (!resultFileFolderName.ContainsKey(fileXML) && !string.IsNullOrEmpty(fileXML))
+                if (!sourceFileTargetFile.ContainsKey(sourceFile) && !string.IsNullOrEmpty(sourceFile))
                 {
-                    resultFileFolderName[fileXML] = Filter.GetFolderName(transfer);
+                    var targetFile = Filter.GetTargetFile(transfer, sourceFile, out_dir);
+                    sourceFileTargetFile[sourceFile] = targetFile;
                     logger.Write($"Обнаружен: {transfer.FileName}");
                 }
             }
@@ -109,17 +104,14 @@ while (true)
     }
 
     logger.Write($"Копирую найденные файлы");
-    foreach (var pair in resultFileFolderName)
+    foreach (var pair in sourceFileTargetFile)
     {
         try
         {
-            var fileName = Path.GetFileName(pair.Key);
-            var subfolder = string.IsNullOrWhiteSpace(pair.Value) ? string.Empty : pair.Value;
-            var newFile = Path.Combine(resultFolder!, pair.Value, fileName);
-            var fileDir = Path.GetDirectoryName(newFile);
-            if(!Directory.Exists(fileDir))
+            var fileDir = Path.GetDirectoryName(pair.Value);
+            if (!Directory.Exists(fileDir))
                 Directory.CreateDirectory(fileDir!);
-            File.Copy(pair.Key, newFile, true);
+            File.Copy(pair.Key, pair.Value, true);
         }
         catch (Exception ex)
         {
@@ -127,6 +119,6 @@ while (true)
         }
     }
 
-    Console.WriteLine($"Найдено файлов: {resultFileFolderName.Count}. Результат в папке {resultFolder}");
+    Console.WriteLine($"Найдено файлов: {sourceFileTargetFile.Count}. Результат в папке {out_dir}");
     Console.ReadLine();
 }
