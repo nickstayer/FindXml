@@ -9,28 +9,11 @@ public class Filter()
     public const string STATUS_SUCCESS = "Успешно обработанные";
     public const string TYPE_NOT_VALID = "Файлы не прошедшие валидацию";
     public const string EXCLUDE_KEYWORD_STATEMENT_HAS_BEEN_UPLOADED = "уже было загружено в систему";
-    
-    public static (string, string) ERROR_KEYWORD_INCORRECT_ENTER = ("введены некорректно", "Некорректные данные физлица");
-    public static (string, string) ERROR_KEYWORD_CASE_NO_FOUND = ("не найдено в", "Дело не найдено");
-    public static (string, string) ERROR_KEYWORD_NO_GUID = ("В заявлении не был передан GUID адреса", "Нет GUID адреса");
-    public static (string, string) ERROR_KEYWORD_ADDRESS_IDENTIFICATION = ("Ошибка при отождествлении адреса", "Ошибка при отождествлении адреса");
-    public static (string, string) ERROR_KEYWORD_SERVICE_REJECTION = ("Отказ подсистемы", "Отказ подсистемы");
-    public static (string, string) ERROR_KEYWORD_NO_RESULT = ("По данному запросу не был получен результат обработки", "Нет результата обработки");
-
 
     public static string[] INCLUDE_TRANSFER_STATUS = [
         STATUS_ERRORS,
         STATUS_REPEAT,
         STATUS_CONFLICTS,
-    ];
-
-    public static (string, string)[] ERROR_KEYWORDS = [
-        ERROR_KEYWORD_INCORRECT_ENTER,
-        ERROR_KEYWORD_CASE_NO_FOUND,
-        ERROR_KEYWORD_NO_GUID,
-        ERROR_KEYWORD_ADDRESS_IDENTIFICATION,
-        ERROR_KEYWORD_SERVICE_REJECTION,
-        ERROR_KEYWORD_NO_RESULT,
     ];
 
     public static string[] INCLUDE_ACCOUNTING_TYPE = [
@@ -90,19 +73,8 @@ public class Filter()
 
     public static string GetTargetFile(Transfer transfer, string sourceFile, string resultFolder)
     {
-        var errorFolderName = GetErrorFolderName(transfer);
         var fileName = Path.GetFileName(sourceFile);
-        var newFile = Path.Combine(resultFolder, transfer.AccountingType, transfer.TransferStatus, errorFolderName, fileName);
+        var newFile = Path.Combine(resultFolder, transfer.AccountingType, transfer.TransferStatus, fileName);
         return newFile;
-    }
-
-    private static string GetErrorFolderName(Transfer transfer)
-    {
-        foreach (var keyword in ERROR_KEYWORDS)
-        {
-            if (transfer.ErrorDescription.Contains(keyword.Item1))
-                return keyword.Item2;
-        }
-        return string.Empty;
     }
 }

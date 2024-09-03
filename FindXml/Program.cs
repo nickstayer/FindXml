@@ -71,7 +71,7 @@ while (true)
         foreach (var section in Filter.INCLUDE_TRANSFER_STATUS)
             Console.WriteLine("\t" + section);
 
-        Console.WriteLine("Исключаю описание ошибок, содержащее:");
+        Console.WriteLine("Исключаю файлы, содержание описания ошибок которых содержит ключевые слова:");
         foreach (var keyword in Filter.EXCLUDE_ERROR_DESCRIPTION_KEYWORDS)
             Console.WriteLine("\t" + keyword);
 
@@ -79,6 +79,7 @@ while (true)
         var parser = new ParserEIRRMULog(inputFile);
         var transfers = parser.Parse();
         var filtredTransfers = Filter.Do(transfers);
+        
         foreach (var transfer in filtredTransfers)
         {
             try
